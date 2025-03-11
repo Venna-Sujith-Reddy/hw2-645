@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    git branch: 'main', credentialsId: 'GITHUB', url: 'https://github.com/kramired/645-hw2.git'
+                    git branch: 'main', credentialsId: 'GITHUB', url: 'https://github.com/Venna-Sujith-Reddy/hw2-645'
                 }
             }
         }
@@ -37,7 +37,7 @@ pipeline {
                 script {
                     //Build the WAR file
                     sh 'rm -rf *.war'
-                    sh 'jar -cvf surveyform.war src/index.html'
+                    sh 'jar -cvf mywebapp.war src/index.html'
                 }
             }
         }
@@ -47,6 +47,8 @@ pipeline {
                 script {
                     //withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_UNAME', passwordVariable: 'DOCKER_PWD')]) {
                     // Build Docker image
+                        sh "pwd"
+                        sh "ls -a"
                         sh "echo ${BUILD_TIMESTAMP}"
                         sh "echo ${DOCKER_PWD} | docker login -u ${DOCKER_UNAME} --password-stdin"
                         sh "docker build -t ${DOCKER_UNAME}/survey-app:${BUILD_TIMESTAMP} . --platform linux/amd64"
@@ -80,8 +82,10 @@ pipeline {
         always {
             // Clean up Docker images locally after build
             cleanWs()
+
             script {
-                sh "docker rmi ${DOCKER_UNAME}/survey-app:${BUILD_TIMESTAMP}"
+                sh "docker images | grep ${DOCKER_UNAME}/survey-app:${BUILD_TIMESTAMP} && docker rmi ${DOCKER_UNAME}/survey-app:${BUILD_TIMESTAMP} || echo 'Image not found, skipping removal'"
+
             }
         }
     }
